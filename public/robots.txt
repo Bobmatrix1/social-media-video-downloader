@@ -7,7 +7,7 @@ Disallow: /_next
 Disallow: /_next/*
 
 # Host
-Host: https://social-media-video-downloader-client.vercel.app
+Host: https://social-media-video-downloader-beta.vercel.app
 
 # Sitemaps
-Sitemap: https://social-media-video-downloader-client.vercel.app/sitemap.xml
+Sitemap: https://social-media-video-downloader-beta.vercel.app/sitemap.xml
