@@ -19,8 +19,12 @@ class ApiClient {
   private client: AxiosInstance;
 
   constructor() {
+    const baseURL = process.env.NEXT_PUBLIC_APP_URL
+      ? `${process.env.NEXT_PUBLIC_APP_URL}/api`
+      : "/api";
+
     this.client = axios.create({
-      baseURL: `${process.env.NEXT_PUBLIC_APP_URL}/api`,
+      baseURL,
       headers: {
         "Content-Type": "application/json",
       },

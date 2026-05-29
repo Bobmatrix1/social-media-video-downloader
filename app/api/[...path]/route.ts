@@ -3,17 +3,22 @@ import axios from "axios";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL!;
 const API_KEY = process.env.API_KEY!;
-const ALLOWED_ORIGIN = process.env.NEXT_PUBLIC_APP_URL!;
+const ALLOWED_ORIGIN = process.env.NEXT_PUBLIC_APP_URL;
 
 // Middleware to verify the request is coming from our frontend
 function isValidRequest(request: NextRequest): boolean {
-  const origin = request.headers.get("origin");
-  const referer = request.headers.get("referer");
-
   // In development, allow requests without origin (like from Postman)
   if (process.env.NODE_ENV === "development") {
     return true;
   }
+
+  // If ALLOWED_ORIGIN is not set, we'll be more lenient
+  if (!ALLOWED_ORIGIN) {
+    return true;
+  }
+
+  const origin = request.headers.get("origin");
+  const referer = request.headers.get("referer");
 
   // Verify the request is coming from our frontend
   if (
@@ -131,3 +136,5 @@ async function handleRequest(request: NextRequest, path: string[]) {
     );
   }
 }
+
+
