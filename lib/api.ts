@@ -50,7 +50,7 @@ class ApiClient {
   async getVideoInfo(url: string): Promise<VideoInfo> {
     try {
       // const platform = detectPlatform(url)!;
-      const response = await this.client.post<VideoInfo>(`/video-info`, {
+      const response = await this.client.post<VideoInfo>(`/proxy-info`, {
         url,
       });
       return response.data;
