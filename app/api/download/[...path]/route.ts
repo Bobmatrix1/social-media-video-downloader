@@ -71,7 +71,9 @@ async function handleRequest(request: NextRequest, path: string[]) {
     if (request.method === "POST") {
       try {
         body = await request.json();
-      } catch (e) {}
+      } catch {
+        // Body is optional or empty
+      }
     }
 
     const response = await axios({
@@ -101,4 +103,6 @@ async function handleRequest(request: NextRequest, path: string[]) {
     });
   }
 }
+
+
 
