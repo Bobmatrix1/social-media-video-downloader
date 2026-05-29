@@ -53,18 +53,24 @@ async function handleRequest(request: NextRequest, path: string[]) {
   const origin = request.headers.get("origin");
   const corsHeaders = getCorsHeaders(origin);
 
-  if (!isValidRequest(request)) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 403, headers: corsHeaders });
-  }
-
-  if (!API_KEY) {
-    return NextResponse.json({ error: "API key not configured" }, { status: 500, headers: corsHeaders });
-  }
-
   try {
+    if (!isValidRequest(request)) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 403, headers: corsHeaders });
+    }
+
+    if (!API_KEY) {
+      return NextResponse.json({ error: "API key not configured" }, { status: 500, headers: corsHeaders });
+    }
+
     const cleanApiUrl = API_URL.replace(/\/$/, "");
     const targetUrl = `${cleanApiUrl}/download/${path.join("/")}`;
-    const body = request.method === "POST" ? await request.json() : undefined;
+    
+    let body;
+    if (request.method === "POST") {
+      try {
+        body = await request.json();
+      } catch (e) {}
+    }
 
     const response = await axios({
       method: request.method,
@@ -82,9 +88,12 @@ async function handleRequest(request: NextRequest, path: string[]) {
       status: response.status,
       headers: corsHeaders 
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("API proxy error:", error);
-    return NextResponse.json({ error: "Internal server error" }, { 
+    return NextResponse.json({ 
+      error: "Internal server error",
+      details: error.message 
+    }, { 
       status: 500,
       headers: corsHeaders 
     });

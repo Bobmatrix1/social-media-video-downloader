@@ -22,6 +22,19 @@ export async function OPTIONS(request: NextRequest) {
   });
 }
 
+export async function GET(request: NextRequest) {
+  const origin = request.headers.get("origin");
+  return NextResponse.json({ 
+    status: "ok", 
+    message: "Info route is reachable via GET",
+    config: {
+      hasUrl: !!API_URL,
+      hasKey: !!API_KEY,
+      origin: ALLOWED_ORIGIN || "not set"
+    }
+  }, { headers: getCorsHeaders(origin) });
+}
+
 function isValidRequest(request: NextRequest): boolean {
   if (process.env.NODE_ENV === "development") return true;
   if (!ALLOWED_ORIGIN) return true;
@@ -37,19 +50,25 @@ export async function POST(request: NextRequest) {
   const origin = request.headers.get("origin");
   const corsHeaders = getCorsHeaders(origin);
 
-  if (!isValidRequest(request)) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 403, headers: corsHeaders });
-  }
-
-  if (!API_KEY) {
-    return NextResponse.json({ error: "API key not configured" }, { status: 500, headers: corsHeaders });
-  }
-
   try {
-    const cleanApiUrl = API_URL.replace(/\/$/, "");
-    const targetUrl = `${cleanApiUrl}/info`;
-    const body = await request.json();
+    if (!isValidRequest(request)) {
+      return NextResponse.json({ error: "Unauthorized Request Origin" }, { status: 403, headers: corsHeaders });
+    }
 
+    if (!API_KEY) {
+      return NextResponse.json({ error: "API key not configured" }, { status: 500, headers: corsHeaders });
+    }
+
+    const cleanApiUrl = API_URL.replace(/\/$/, "");
+    let body;
+    try {
+      body = await request.json();
+    } catch (e) {
+      return NextResponse.json({ error: "Invalid JSON body" }, { status: 400, headers: corsHeaders });
+    }
+
+    const targetUrl = `${cleanApiUrl}/info`;
+    
     const response = await axios({
       method: "POST",
       url: targetUrl,
@@ -62,15 +81,19 @@ export async function POST(request: NextRequest) {
       validateStatus: () => true,
     });
 
-    return NextResponse.json(response.data, { 
+    return NextResponse.json(response.data, {
       status: response.status,
-      headers: corsHeaders 
+      headers: corsHeaders
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("API proxy error:", error);
-    return NextResponse.json({ error: "Internal server error" }, { 
+    return NextResponse.json({ 
+      error: "Internal server error in Proxy", 
+      details: error.message,
+      target: API_URL
+    }, {
       status: 500,
-      headers: corsHeaders 
+      headers: corsHeaders
     });
   }
 }
